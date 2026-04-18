@@ -7,11 +7,11 @@
 import random
 from population import Population
 from individual import Individual
-from properties import GENERATIONS, MUTATION_RATE, POPULATION_SIZE
+from properties import GENERATIONS, POPULATION_SIZE
 
 class GeneticAlgorithm:
 
-    def __init__(self, crossover=None):
+    def __init__(self, crossover=None, mutation=None):
         """
         Inicialização dos atributos:
 
@@ -24,6 +24,7 @@ class GeneticAlgorithm:
         self.population = []
         self._best_execution = None # Melhor da execução
         self._crossover_method = crossover
+        self._mutation_method = mutation
 
     def roulete_selection(self, sum_fitness):
         """Seleção dos pais com método da roleta."""
@@ -74,9 +75,7 @@ class GeneticAlgorithm:
                 Método do indivíduo para definir o tipo de crossover. Passa a instância inicializada.
                 """
                 self.population[father1].set_crossover(self._crossover_method)
-
                 childs = self.population[father1]._crossover.run(other=self.population[father2])
-                #childs = self.population[father1].one_slice_crossover(self.population[father2]) # Cromossomo dos filhos
                 
                 # Criação dos filhos
                 child1 = Individual()
@@ -84,9 +83,14 @@ class GeneticAlgorithm:
                 child2 = Individual()
                 child2.set_chromossome(childs[1])
 
+                """
+                Método do indivíduo para definir o tipo de mutação.
+                """
+                child1.set_mutation(self._mutation_method)
+                child2.set_mutation(self._mutation_method)
                 # Mutação dos filhos
-                child1.bitflip_mutation(MUTATION_RATE)
-                child2.bitflip_mutation(MUTATION_RATE)
+                child1._mutation.run()
+                child2._mutation.run()
 
                 # Atualiza geração dos filhos
                 child1.set_generation(geracao+1)

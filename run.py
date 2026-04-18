@@ -3,10 +3,11 @@
 @author: Alexandre Alves, Msc.
 
 """
-
+from properties import MUTATION_RATE
 from ga import GeneticAlgorithm
 from individual import Individual
 from crossover.crossover import OnePoint, TwoPoint
+from mutation.mutation import BitFlipMutation
 
 if __name__=="__main__":
 
@@ -32,5 +33,8 @@ if __name__=="__main__":
     (7, 18)
     ]
 
-    runner = GeneticAlgorithm(crossover=TwoPoint())
+    runner = GeneticAlgorithm(
+        crossover=TwoPoint(),
+        mutation=BitFlipMutation(MUTATION_RATE)
+        )
     runner.evolve(itens)

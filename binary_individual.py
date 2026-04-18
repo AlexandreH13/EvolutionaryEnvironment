@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from properties import INDIVIDUAL_LEN
 import random
 from crossover.crossover import Crossover
+from mutation.mutation import Mutation
 
 class BinaryIndividual(ABC):
 
@@ -26,6 +27,7 @@ class BinaryIndividual(ABC):
         self._generation: int = 0
         self._is_mutated = False
         self._crossover = None
+        self._mutation = None
 
     def __str__(self):
         '''
@@ -115,21 +117,19 @@ class BinaryIndividual(ABC):
 
     def is_mutated(self):
         return self._is_mutated
-
-    def bitflip_mutation(self, rate) -> list:
-        """Mutação por troca de bit. Retorna próprio indivíduo mutado."""
-
-        for g in range(len(self.get_chromossome())):
-            if random.random() < rate:
-                if not self.is_mutated():
-                    self._is_mutated = True
-                if self.get_chromossome()[g]==0:
-                    self._chromossome[g]=1
-                else:
-                    self._chromossome[g]=0
-
-        return self
     
-    def set_crossover(self, method: Crossover) -> tuple:
+    def set_crossover(self, method: Crossover):
+        """
+        Método do indivíduo que define qual crossover usar.
+        É definido no indivíduo uma vez que ele é quem invoca o método.
+        """
         self._crossover = method
         method.set_father(father=self)
+
+    def set_mutation(self, method: Mutation):
+        """
+        Método do indivíduo que define qual mutação usar.
+        É definido no indivíduo uma vez que ele é quem invoca o método.
+        """
+        self._mutation = method
+        method.set_individual(individual=self)
