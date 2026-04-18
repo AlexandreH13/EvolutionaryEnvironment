@@ -7,14 +7,25 @@
 from abc import ABC, abstractmethod
 from properties import INDIVIDUAL_LEN
 import random
+from crossover.crossover import Crossover
 
 class BinaryIndividual(ABC):
 
     def __init__(self):
+        """
+        Inicializações:
+
+        _fitness: valor da avaliação do indivíduo
+        _chromossome: lista de bits
+        _generation: variável que armazena e atualiza o número da geração
+        _is_mutated: armazena booleano para informar se indivíduo sofreu mutação
+        _is_crossover: define o método de crossover. recebe a instância passada pelo módulo 'ga'
+        """
         self._fitness: int = 0
         self._chromossome: list = []
         self._generation: int = 0
         self._is_mutated = False
+        self._crossover = None
 
     def __str__(self):
         '''
@@ -119,43 +130,6 @@ class BinaryIndividual(ABC):
 
         return self
     
-    
-    def one_slice_crossover(self, other):
-        """Implementa crossover de 1 ponto de corte."""
-        len_indi = len(self.get_chromossome())-1
-        slice_idx = random.randint(1, len_indi) # Slice index. Not considering index 0.
-
-        # Current parent slices
-        partition_one_curr = self.get_chromossome()[0:slice_idx]
-        partition_two_curr  = self.get_chromossome()[slice_idx:]
-
-        # Other parent slices
-        partition_one_other = other.get_chromossome()[0:slice_idx]
-        partition_two_other  = other.get_chromossome()[slice_idx:]
-
-        child1_chromossome = partition_one_curr + partition_two_other
-        child2_chromossome = partition_one_other + partition_two_curr
-
-        return child1_chromossome, child2_chromossome
-
-    def two_slices_crossover(self, other):
-        """Implementa o crossover com 2 pontos de corte."""
-        len_indi = len(self.get_chromossome())-1
-        slice_idx1 = random.randint(1, len_indi-2) # Not considering index 0 and last index to avoid ValueError on slice_idx2
-        slice_idx2 = random.randint(slice_idx1+1, len_indi-1)
-
-
-        # Current parent slices
-        partition_one_curr = self.get_chromossome()[0:slice_idx1]
-        partition_two_curr = self.get_chromossome()[slice_idx1:slice_idx2]
-        partition_three_curr  = self.get_chromossome()[slice_idx2:]
-
-        # Other parent slices
-        partition_one_other = other.get_chromossome()[0:slice_idx1]
-        partition_two_other = other.get_chromossome()[slice_idx1:slice_idx2]
-        partition_three_other  = other.get_chromossome()[slice_idx2:]
-
-        child1_chromossome = partition_one_curr + partition_two_other + partition_three_curr
-        child2_chromossome = partition_one_other + partition_two_curr + partition_three_other
-
-        return child1_chromossome, child2_chromossome
+    def set_crossover(self, method: Crossover) -> tuple:
+        self._crossover = method
+        method.set_father(father=self)

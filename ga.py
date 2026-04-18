@@ -11,10 +11,19 @@ from properties import GENERATIONS, MUTATION_RATE, POPULATION_SIZE
 
 class GeneticAlgorithm:
 
-    def __init__(self):
+    def __init__(self, crossover=None):
+        """
+        Inicialização dos atributos:
+
+        best_of: Melhor indivíduo de cada geração
+        population: Lista com os indivíduos
+        _best_execution: Armazena o melhor indivíduo de toda execução
+        _crossover_method: Define o método de crossover. Deve ser passado uma instância do método desejado do módulo 'crossover'
+        """
         self.best_of = None
         self.population = []
         self._best_execution = None # Melhor da execução
+        self._crossover_method = crossover
 
     def roulete_selection(self, sum_fitness):
         """Seleção dos pais com método da roleta."""
@@ -61,10 +70,13 @@ class GeneticAlgorithm:
                 father1 = self.roulete_selection(population_total_fitness)
                 father2 = self.roulete_selection(population_total_fitness)
 
-                '''
-                ATENÇÃO: nas primeiras gerações são pouquíssimos indivíduos com bom fitness. a seleção dos pais vai considerar indivíduos muito parecidos.
-                '''
-                childs = self.population[father1].one_slice_crossover(self.population[father2]) # Cromossomo dos filhos
+                """
+                Método do indivíduo para definir o tipo de crossover. Passa a instância inicializada.
+                """
+                self.population[father1].set_crossover(self._crossover_method)
+
+                childs = self.population[father1]._crossover.run(other=self.population[father2])
+                #childs = self.population[father1].one_slice_crossover(self.population[father2]) # Cromossomo dos filhos
                 
                 # Criação dos filhos
                 child1 = Individual()
@@ -99,3 +111,5 @@ class GeneticAlgorithm:
                 self.set_best_execution(self.best_of)
 
             print(f"MELHOR DA GERAÇÃO: {self.best_of}")
+
+        print(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")

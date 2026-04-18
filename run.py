@@ -5,6 +5,8 @@
 """
 
 from ga import GeneticAlgorithm
+from individual import Individual
+from crossover.crossover import OnePoint, TwoPoint
 
 if __name__=="__main__":
 
@@ -30,5 +32,5 @@ if __name__=="__main__":
     (7, 18)
     ]
 
-    runner = GeneticAlgorithm()
+    runner = GeneticAlgorithm(crossover=TwoPoint())
     runner.evolve(itens)
