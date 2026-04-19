@@ -5,9 +5,13 @@
 """
 
 from typing import override
-from binary_individual import BinaryIndividual
+from representations.binary_individual import BinaryIndividual
 
 class Individual(BinaryIndividual):
+    """
+    Sua implementação vem aqui. Escolha a representação desejada do indivíduo e realize a herança.
+    Implemente o cálculo do fitness.
+    """
 
     def __init__(self):
         super().__init__()
