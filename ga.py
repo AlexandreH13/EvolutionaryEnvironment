@@ -19,6 +19,7 @@ class GeneticAlgorithm:
         population: Lista com os indivíduos
         _best_execution: Armazena o melhor indivíduo de toda execução
         _crossover_method: Define o método de crossover. Deve ser passado uma instância do método desejado do módulo 'crossover'
+        _mutation_method: Define o método de mutação. Deve ser passado uma instância do métodos desejado do módulo 'mutation'
         """
         self.best_of = None
         self.population = []

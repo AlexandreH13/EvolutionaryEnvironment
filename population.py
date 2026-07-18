@@ -42,7 +42,10 @@ class Population:
         self._pop = new_pop
 
     def sort_pop(self):
-        """Ordena de maneira ascendente em relação ao fitness."""
+        """
+        Ordena de maneira ascendente em relação ao fitness.
+        Implementado no método __lt__ da representação do indivíduo.
+        """
         self._pop = sorted(self._pop, reverse=True) # Melhor indivíduo no índice 0
 
     def get_best_of(self):

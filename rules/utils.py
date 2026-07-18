@@ -78,7 +78,7 @@ def get_rule_attribute_str(binary_weight: list, binary_value: list, operator: in
 def get_decimal_weights(data: list, binary_size: int):
     """
     Cria uma máscara para obter os 'batches' do indivíduo (list) que representam os pesos (W).
-    A máscara itera sobre a lista indicando 'True' apenas nos bits que representam o segmento peso.
+    A máscara itera sobre a lista indicando 'True' apenas nos bits que representam o segmento peso (W).
 
     binary_size: int
         Número de bits usado para representar os segmentos peso (W) e valor (V).
@@ -126,12 +126,31 @@ def _generate_chromossome(binary_size: int, num_attr: int) -> None:
 
     return _chromossome
 
+def get_active_segment(weight_list: list, threshold: float):
+    """
+    Verifica a lista de pesos e retorna os índices onde os segmentos
+    estarão presentes, isto é, peso >= limiar.
+    """
+
+    true_indexes = [i for i, x in enumerate(weight_list) if x >= threshold]
+    return true_indexes
+
+def set_genes_in_list(gs: int, crom: list):
+    """
+    Cria sublistas na lista do cromossomo que representam os genes.
+
+    gs: g(s). Tamanho do gene.
+    """
+
+    
+
+
 if __name__=="__main__":
 
     '''
     Tamanho do gene: g(s) = 2 + 4*s
         onde: s é o número de bits escolhido para a representação binária
-        2 operadores
+        2 operadores (< e >=)
         4 são os segmentos W e V à esquerda e à direita
 
     Tamanho do cromossomo: c(s) = g(s)*n
@@ -152,14 +171,22 @@ if __name__=="__main__":
         Os bits são inseridos em 4 segmentos: WL (peso da esquerda), WR (peso da direita), VL (valor da esquerda) e VR (valor da direita)
     '''
 
-    NUM_ATTR = 2
-    BIN_SIZE = 5
+    NUM_ATTR = 10
+    BIN_SIZE = 4
+    WEIGHT_THRESHOLD = 0.6
 
-    gene = _generate_chromossome(BIN_SIZE, NUM_ATTR)
+    crom = _generate_chromossome(BIN_SIZE, NUM_ATTR)
+    pesos = get_decimal_weights(gene, BIN_SIZE)
+    # print(f"Cromossomo: {gene}")
+    # print(f"Tamanho do cromossomo: {len(gene)}")
+    # print()
+    # print(f'PESOS: {pesos}')
+    # print(f'OPERADOR: {get_operator(gene, BIN_SIZE)}')
+    # print(f'VALORES: {get_decimal_value(gene, BIN_SIZE)}')
+    # print()
+    print(f"ATRIBUTOS ATIVOS: {get_active_segment(pesos, WEIGHT_THRESHOLD)}")
 
-    print(f"Cromossomo: {gene}")
-    print(f"Tamanho do cromossomo: {len(gene)}")
-    print()
-    print(f'PESOS: {get_decimal_weights(gene, BIN_SIZE)}')
-    print(f'OPERADOR: {get_operator(gene, BIN_SIZE)}')
-    print(f'VALORES: {get_decimal_value(gene, BIN_SIZE)}')
+    print(1 * (1<2))
+    """
+    Criar lista com as comparações dos valores e dos valores dos atributos usando (1 * comparação). Lista com todos valores 1 significa que regra é True.
+    """
