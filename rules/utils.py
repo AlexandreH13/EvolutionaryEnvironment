@@ -5,6 +5,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from itertools import compress, cycle, batched
 from properties import BINARY_REPRESENTATION_SIZE
 
+BIN_SIZE = 4
+WEIGHT_THRESHOLD = 0.2
+
 def get_decimal(binary_values: list):
     """
     Algoritmo: 
@@ -52,43 +55,42 @@ def denormalize_min_max(n, min, max):
 def get_string_operator(value: int):
     return ">=" if value==0 else "<"
 
-def get_operator(data: list, binary_size: int):
+def get_operator(data: list, binary_size: int, is_string: bool=False):
     """
-    Retorna operador de comparação.
+    Utiliza a mesma estratégia de máscara das funções get_decimal_weights e get_decimal_value
+    para obter os operadores do cromossomo.
     """
 
     operator_mask = [False] * binary_size + [True] + [False] * binary_size
     operator_list_result = list(compress(data, cycle(operator_mask)))
 
-    string_operator_batches = [get_string_operator(bit) for bit in operator_list_result]
+    if is_string:
+        operator_list_result = [get_string_operator(bit) for bit in operator_list_result]
 
-    return string_operator_batches
+    return operator_list_result
     
-
-def get_rule_attribute_str(binary_weight: list, binary_value: list, operator: int):
-    """
-    Retorna uma string com o antecedente da regra de um atributo.
-    """
-    _d_weight = get_decimal(binary_weight) # Decimal do segmento peso
-    _d_value = get_decimal(binary_value) # Decimal do segmento valor
-    _s_operator = get_operator(operator) # String do operador
-
-    return f"{_d_weight}{_s_operator}{_d_value}"
 
 def get_decimal_weights(data: list, binary_size: int):
     """
     Cria uma máscara para obter os 'batches' do indivíduo (list) que representam os pesos (W).
     A máscara itera sobre a lista indicando 'True' apenas nos bits que representam o segmento peso (W).
 
+    Exemplo: Se o número de bits para representar for 4, vamos ter uma máscara como abaixo:
+        mascara = [True, True, True, True, False, False, False, False, False]
+    Ou seja, 4 primeiros bits para o peso, e os 5 próximos bits para o segmento valor (V) e operador (O); 4 para o valor e 1 para o operador.
+
     binary_size: int
         Número de bits usado para representar os segmentos peso (W) e valor (V).
+    data: list
+        A lista que representa a versão binária do cromossomo.
     """
 
 
     # mascara = [True, True, True, True, False, False, False, False, False]
     weight_mask = [True] * binary_size + [False] * (binary_size+1)
+
     weight_list_result = list(compress(data, cycle(weight_mask)))
-    
+
     batch_iterator = batched(weight_list_result, binary_size)
 
     #binary_weight_batches = [list(batch) for batch in batch_iterator]
@@ -99,8 +101,15 @@ def get_decimal_weights(data: list, binary_size: int):
 def get_decimal_value(data: list, binary_size: int):
 
     '''
-    Exemplo de máscara onde o número de bits usado na representação é 4:
-    mascara = [False, False, False, False, False, True, True, True, True]
+    Cria uma máscara para obter os 'batches' do indivíduo (list) que representam os pesos (W).
+    A máscara itera sobre a lista indicando 'True' apenas nos bits que representam o segmento peso (W).
+
+    Mesmo algoritmo usado em get_decimal_weights.
+
+    binary_size: int
+        Número de bits usado para representar os segmentos peso (W) e valor (V).
+    data: list
+        A lista que representa a versão binária do cromossomo.
     '''
     value_mask = [False] * (binary_size+1) + [True] * binary_size
     value_mask_list_result = list(compress(data, cycle(value_mask)))
@@ -142,7 +151,175 @@ def set_genes_in_list(gs: int, crom: list):
     gs: g(s). Tamanho do gene.
     """
 
-    
+    pass
+
+def get_condition_for_gene(operator_value: int, value_segment: float, attr_value: float):
+    """
+    Função que retorna o valor booleano de uma condição para um gene.
+    Por exemplo: recebe um gene e o valor do atributo. o gene vai possuir o valor e o operador.
+    A depender do operador, criamos a condição abaixo e retornamos o valor booleano.
+    Gene-> operador: >=; valor: 0.5
+    Atributo-> 0.45
+    Resultado-> 0.5>=0.45 => True
+
+    operator_value: int
+        Valor que representa o operador. 0 é '>=' e 1 é '<'.
+    value_segment: float
+        Segmento do gene que representa o valor
+    atrr_value: float
+        Valor do atributo que estamos comparando
+    """
+
+    condicao = False
+    # 0 é >=
+    if operator_value==0:
+        condicao = value_segment>=attr_value
+    # 1 é <
+    else:
+        condicao = value_segment<attr_value
+    return condicao
+
+def get_rule_attribute_str(crom: list, attr_list: list):
+    """
+    Retorna uma string com o antecedente da regra de um atributo.
+    """
+
+    # Lista dos segmentos peso (W)
+    pesos = get_decimal_weights(crom, BIN_SIZE)
+    # Operadores do cromossomo
+    operators = get_operator(crom, BIN_SIZE)
+    # Valores (V) do cromossomo
+    values = get_decimal_value(crom, BIN_SIZE)
+
+    # Obtém apenas os intervalos ativos
+    _valid_interval = get_active_segment(pesos, WEIGHT_THRESHOLD)
+    print(f"PARTIÇÕES ATIVAS: {_valid_interval}")
+
+    condicoes_list = []
+    _i = 0
+    while _i < len(_valid_interval):
+        
+        _interval = _valid_interval[_i] # intervalo verificado
+        atributo_verificado = _interval//2 # a qual atributo pertence o intervalo
+
+        # String da condição
+        condicao_attr = f"{values[_interval]} {get_string_operator(operators[_interval])} {attr_list[atributo_verificado]}" 
+        # Se não for o último intervalo do cromossomo
+        if _i+1 < len(_valid_interval):
+            # Se o próximo intervalo for do mesmo atributo que intervalo dessa iteração, é uma condição com OU
+            proximo_intervalo = _valid_interval[_i + 1]
+            if proximo_intervalo //2 == atributo_verificado:
+                condicao_attr_dir = f"OR {values[proximo_intervalo]} {get_string_operator(operators[proximo_intervalo])} {attr_list[atributo_verificado]}"
+                condicao_attr = "("+condicao_attr + " " + condicao_attr_dir+")"
+                condicoes_list.append(condicao_attr)
+                _i+=2
+            else:
+                condicoes_list.append("("+condicao_attr+")")
+                _i+=1
+        else:
+            condicoes_list.append("("+condicao_attr+")")
+            _i+=1
+
+        
+        #condicoes_list.append(condicao_attr)
+        #_i+=1
+
+    rule_str = "IF"+" AND ".join(condicoes_list)
+    return rule_str
+
+def map_cromosome_to_rule(crom: str, attr_list: list):
+    """Mapeamento do genótipo para o fenótipo. Verifica se a regra obtida pelo cromossomo classifica
+    um dado. Recebe a lista dos valores dos atributos, transforma o cromossomo na regra e classifica.
+    A classificação ocorre verificando cada intervalo dos genes que estão ativos. É verificado também a qual
+    atributo o intervalo pertence (intervalo//2). Se dois intervalos estiverem ativos para um atributo eles são concatenados
+    com o conector OU. Senão, apenas uma condição é utilizada. Uma regra só é válida se todas as condições forem
+    True.
+
+    Um exemplo:
+        intervalo esquerdo: ativo | >= | 0.4
+        intervalor direito: ativo | < | 0.78
+        Regra: SE ATTR >= 0.4 OU ATTR < 0.78
+    Outro exemplo:
+        intervalo esquerdo: não ativo | >= | 0.2
+        intervalor direito: ativo | < | 0.55
+        Regra: SE ATTR < 0.55
+
+    crom: str
+        Cromossomo no formato binário.
+    attr_list: list
+        Lista com os valores dos atributos.
+    """
+
+    if not crom:
+        return None
+
+    # Uma regra válida (cromossomo) é aquela onde todas as condições (genes) são True
+    valid_rule = True
+
+    pesos = get_decimal_weights(crom, BIN_SIZE)
+
+    # Indices da partição válida. É uma lista
+    # Cada gene tem duas partições (intervalo superior e inferior)
+    # Para obter o atributo da partição ativa, usamos: índice_particao//2
+    _valid_interval = get_active_segment(pesos, WEIGHT_THRESHOLD)
+
+    print(f"PARTIÇÕES ATIVAS: {_valid_interval}")
+    # Se nenhum intervalo (esquerdo ou direito) for válido, regra não é válida.
+    if not _valid_interval:
+        valid_rule = False
+
+    # Operadores do cromossomo
+    operators = get_operator(crom, BIN_SIZE)
+    # Valores (V) do cromossomo
+    values = get_decimal_value(crom, BIN_SIZE)
+
+    # Faz mapeamento apenas se houver intervalos válidos
+    if valid_rule:
+        _i = 0
+
+        # Itera sobre os intervalos válidos e não sobre os atributos
+        # Mais eficiente uma vez que podemos ter atributos sem intervalos válidos
+        while _i < len(_valid_interval):
+            # Intervalo verificado na iteração
+            _interval = _valid_interval[_i]
+            # Índice do atributo que pertence ao intervalo
+            atributo_verificado = _interval//2
+            print(f"VERIFICAÇÃO DO INTERVALO {_interval} PARA O ATRIBUTO {attr_list[atributo_verificado]}")
+
+            # Obtém valor booleano da condição formada pelo gene
+            valor_bool_condicao_esq = get_condition_for_gene(operators[_interval], values[_interval], attr_list[atributo_verificado])
+
+            # Verifica se existe um próximo intervalo na lista (out of bounds)
+            if _i+1 < len(_valid_interval):
+                proximo_intervalo = _valid_interval[_i + 1]
+                # Se o próximo segmento válido pertence ao mesmo atributo (gene), é uma regra com conector OU
+                if proximo_intervalo //2 == atributo_verificado:
+                    print(f"Intervalo {_interval} e seu conseguinte {proximo_intervalo} são do mesmo atributo {atributo_verificado}")
+                    # Primeira condição à esquerda é o valor_bool_condicao_esq
+                    # Segunda condição à direita
+                    valor_bool_condicao_dir = get_condition_for_gene(operators[proximo_intervalo], values[proximo_intervalo], attr_list[atributo_verificado])
+                    # OU
+                    valor_bool_condicao = valor_bool_condicao_esq or valor_bool_condicao_dir
+                    # Pula o próximo intervalo válido já que usamos nessa condição
+                    _i+=2
+                else:
+                    valor_bool_condicao = valor_bool_condicao_esq
+                    _i+=1
+            else:
+                valor_bool_condicao = valor_bool_condicao_esq
+                _i+=1
+
+            # Se uma condição for falsa, a regra é falsa
+            if not valor_bool_condicao:
+                valid_rule = False
+                break
+
+    if valid_rule:
+        print("REGRA CLASSIFICA")
+        print(f"REGRA: {get_rule_attribute_str(crom, attr_list)}")
+    else:
+        print("REGRA NÃO CLASSIFICA")
+        print(f"REGRA: {get_rule_attribute_str(crom, attr_list)}")
 
 
 if __name__=="__main__":
@@ -165,28 +342,42 @@ if __name__=="__main__":
         Representação binária com 12 bits e dataset com 400 atributos = cromossomo com 20.000 bits.
 
     Exemplo:
+        DEPRECIADO(?)
         Para um atributo (1 gene), a cada aumento de 1 bit são inseridos 4 bits no cromossomo. A cada 2 bits, 8 bits são inseridos.
         Para 2 atributos (2 genes), a cada aumento de 1 bit são inseridos 8 bists no cromossomo.
 
         Os bits são inseridos em 4 segmentos: WL (peso da esquerda), WR (peso da direita), VL (valor da esquerda) e VR (valor da direita)
     '''
 
-    NUM_ATTR = 10
-    BIN_SIZE = 4
-    WEIGHT_THRESHOLD = 0.6
-
+    atributos = [0.5, 0.354, 0.44, 0.7]
+    NUM_ATTR = len(atributos)
     crom = _generate_chromossome(BIN_SIZE, NUM_ATTR)
-    pesos = get_decimal_weights(gene, BIN_SIZE)
-    # print(f"Cromossomo: {gene}")
-    # print(f"Tamanho do cromossomo: {len(gene)}")
-    # print()
-    # print(f'PESOS: {pesos}')
-    # print(f'OPERADOR: {get_operator(gene, BIN_SIZE)}')
-    # print(f'VALORES: {get_decimal_value(gene, BIN_SIZE)}')
-    # print()
-    print(f"ATRIBUTOS ATIVOS: {get_active_segment(pesos, WEIGHT_THRESHOLD)}")
+    pesos = get_decimal_weights(crom, BIN_SIZE)
 
-    print(1 * (1<2))
-    """
-    Criar lista com as comparações dos valores e dos valores dos atributos usando (1 * comparação). Lista com todos valores 1 significa que regra é True.
-    """
+    print(f"CROMOSSOMO: {crom}")
+    print(f"TAMANHO DO CROMOSSOMO: {len(crom)}")
+    print(f"TAMANHO DO GENE: {len(crom)/NUM_ATTR}")
+
+    print()
+
+    print(f"VALORES DECIMAIS DOS SEGMENTOS 'PESO': {pesos}")
+
+    print()
+
+    print(f"VALORES DECIMAIS DOS SEGMENTOS 'VALOR': {get_decimal_value(crom, BIN_SIZE)}")
+
+    print()
+
+    print(f'OPERADOR: {get_operator(crom, BIN_SIZE)}')
+    print(f'OPERADOR STRING: {get_operator(crom, BIN_SIZE, is_string=True)}')
+
+    print()
+
+    print(f"MAPEAMENTO")
+    print(f"ATRIBUTOS: {atributos}")
+    map_cromosome_to_rule(crom, atributos)
+
+
+   # A FAZER:
+   # fazer __str__ do cromossomo (Feito. Só não é __str__)
+   # fazer classe

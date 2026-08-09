@@ -55,6 +55,7 @@ class Population:
         return self._pop[0]
 
     def get_total_fitness(self):
+        """DEPRECIADO. Calcular todos os fitness apenas para obter o total pode ser ineficiente."""
         """Retorna soma de todos os valores de fitness. Usado para seleção dos pais."""
         fitness_list = [x.get_fitness() for x in  self._pop]
         return sum(fitness_list)
