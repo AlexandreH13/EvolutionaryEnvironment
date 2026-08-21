@@ -349,7 +349,7 @@ if __name__=="__main__":
         Os bits são inseridos em 4 segmentos: WL (peso da esquerda), WR (peso da direita), VL (valor da esquerda) e VR (valor da direita)
     '''
 
-    atributos = [0.5, 0.354, 0.44, 0.7]
+    atributos = [0.5]
     NUM_ATTR = len(atributos)
     crom = _generate_chromossome(BIN_SIZE, NUM_ATTR)
     pesos = get_decimal_weights(crom, BIN_SIZE)

@@ -36,6 +36,3 @@ class Individual(BinaryIndividual):
         
         if weight > constraint:
             self.set_fitness(0)
-           
-        
-
