@@ -4,8 +4,8 @@
 
 """
 
-from properties import POPULATION_SIZE
-from individual import Individual
+from evolve.properties import POPULATION_SIZE
+from evolve.individual import RuleIndividual
 
 class Population:
 
@@ -29,13 +29,13 @@ class Population:
         """Gera população inicial com tamanho POPULATION_SIZE"""
 
         for i in range(POPULATION_SIZE):
-            ind = Individual()
+            ind = RuleIndividual()
             ind._generate_chromossome()
             self._pop.append(ind)
 
-    def evaluate_pop(self, itens):
+    def evaluate_pop(self, data):
         for i in self._pop:
-            i.calculate_fitness(itens)
+            i.calculate_fitness(data)
 
     def set_pop(self, new_pop):
         """Atualiza população"""

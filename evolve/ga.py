@@ -5,9 +5,10 @@
 """
 
 import random
-from population import Population
-from individual import Individual
-from properties import GENERATIONS, POPULATION_SIZE
+from evolve.population import Population
+from evolve.individual import RuleIndividual
+import evolve.properties as properties
+from evolve.rules.rules import Rules
 
 class GeneticAlgorithm:
 
@@ -34,7 +35,7 @@ class GeneticAlgorithm:
         sum = 0
         i = 0
 
-        while i < POPULATION_SIZE and sum < sorted_value:
+        while i < properties.POPULATION_SIZE and sum < sorted_value:
             sum += self.population[i].get_fitness()
             father += 1
             i += 1
@@ -62,13 +63,13 @@ class GeneticAlgorithm:
 
         print(f"MELHOR DA GERAÇÃO: {self.best_of}")
 
-        for geracao in range(GENERATIONS):
+        for geracao in range(properties.GENERATIONS):
             population_total_fitness = self.population.get_total_fitness()
 
             next_generation_pop = []
 
             # De dois em dois pois vamos gerar 2 filhos e no fim das iterações teremos um número de filhos igual ao total da população
-            for new_individuals in range(0, POPULATION_SIZE, 2):
+            for new_individuals in range(0, properties.POPULATION_SIZE, 2):
                 father1 = self.roulete_selection(population_total_fitness)
                 father2 = self.roulete_selection(population_total_fitness)
 
@@ -79,9 +80,9 @@ class GeneticAlgorithm:
                 childs = self.population[father1]._crossover.run(other=self.population[father2])
                 
                 # Criação dos filhos
-                child1 = Individual()
+                child1 = RuleIndividual()
                 child1.set_chromossome(childs[0])
-                child2 = Individual()
+                child2 = RuleIndividual()
                 child2.set_chromossome(childs[1])
 
                 """
@@ -118,3 +119,4 @@ class GeneticAlgorithm:
             print(f"MELHOR DA GERAÇÃO: {self.best_of}")
 
         print(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
+        print(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")

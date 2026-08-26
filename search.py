@@ -1,3 +1,7 @@
+import evolve.properties as properties
+from evolve.ga import GeneticAlgorithm
+from evolve.crossover.crossover import OnePoint, TwoPoint
+from evolve.mutation.mutation import BitFlipMutation
 from data_properties import DataProperties
 
 class Search:
@@ -11,31 +15,46 @@ class Search:
     """
 
     @staticmethod
-    def class_search(data: DataProperties, target_column: str, class_name: str):
+    def class_search(data: tuple, cols_to_remove: list, target_column: str, class_name: str, batch_size: int):
 
-        if not target_column in data.columns:
-            print("Coluna target não existe")
-            return None
+        ## FAZER: Função que verifica se colunas são do tipo float
 
+        X,y = data.prepare_for_ga(
+            batch_size=batch_size, 
+            cols_to_remove=cols_to_remove, 
+            target_column=target_column, 
+            class_name=class_name)
 
-        _data_filtered_by_class = data[data[target_column]==class_name]
-        if _data_filtered_by_class.empty:
-            print("A classe passada não existe no conjunto de dados.")
-            return None
+        runner = GeneticAlgorithm(
+            crossover=OnePoint(),
+            mutation=BitFlipMutation(properties.MUTATION_RATE)
+        )
 
-        # Itera usando itertuples por ser mais eficiente computacionalmente
-        for row in _data_filtered_by_class.itertuples(index=True):
-            print(f"Dado: {row}")
-            # Verificar se os valores estão como float
-            # Obter lista dos atributos
-
-        
+        ## Passar y é defasado, uma vez que executa para cada classe
+        runner.evolve((X,y))
+       
         
 
 if __name__=="__main__":
 
-    data = DataProperties("Iris.csv")
-    data.remove_column(cols=["Id"])
-    df = data.get_data()
-    Search.class_search(df, "Species", "Iris-setosa")
+    print(f"Tamanho da representação binária: {properties.BINARY_REPRESENTATION_SIZE}")
+    # Fórmula do tamanho do gene: 2+4*s
+    gene_size = 2+4*properties.BINARY_REPRESENTATION_SIZE
+    print(f"Tamanho do gene: {gene_size}")
+
+    data = DataProperties("bc_wisconsin.csv")
+
+    dt = data.get_data()
+
+    print(dt.columns)
+    
+    # Número de atributos, desconsiderando a classe
+    num_attr = data.get_num_attr(cols_to_remove=["id", "diagnosis", "Unnamed: 32"])
+    properties.NUM_ATTR = num_attr
+    print(f"Número de atributos: {num_attr}")
+    # Fórmula do tamanho do cromossomo
+    properties.INDIVIDUAL_LEN = gene_size*num_attr
+    print(f"Tamanho do cromossomo: {properties.INDIVIDUAL_LEN}")
+
+    Search.class_search(data, cols_to_remove=["id", "Unnamed: 32"], target_column="diagnosis", class_name="M", batch_size=properties.BATCH_SIZE)
     
