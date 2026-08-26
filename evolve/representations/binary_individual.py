@@ -5,10 +5,10 @@
 """
 
 from abc import ABC, abstractmethod
-from properties import INDIVIDUAL_LEN
+import evolve.properties as properties
 import random
-from crossover.crossover import Crossover
-from mutation.mutation import Mutation
+from evolve.crossover.crossover import Crossover
+from evolve.mutation.mutation import Mutation
 
 class BinaryIndividual(ABC):
 
@@ -79,13 +79,13 @@ class BinaryIndividual(ABC):
         return iter(self._chromossome)
     
     @abstractmethod
-    def calculate_fitness(self) -> float:
+    def calculate_fitness(self, dados) -> float:
         """Método abstrato para calculo do fitness. Deve ser implementado pela subclasse."""
         pass
     
     def _generate_chromossome(self) -> None:
         """Gera aleatoriamente cromossomo com estrutura binária."""
-        for i in range(INDIVIDUAL_LEN):
+        for i in range(properties.INDIVIDUAL_LEN):
             self._chromossome.append(random.randint(0,1))
     
     def get_chromossome(self) -> list:
