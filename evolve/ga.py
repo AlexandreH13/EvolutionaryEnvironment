@@ -9,6 +9,7 @@ from evolve.population import Population
 from evolve.individual import RuleIndividual
 import evolve.properties as properties
 from evolve.rules.rules import Rules
+from logger import logger_arq, logger_term, logger_exp
 
 class GeneticAlgorithm:
 
@@ -47,6 +48,8 @@ class GeneticAlgorithm:
 
     def evolve(self, data):
 
+        logger_exp.info("gen,fit")
+
         # Initial pop
         self.population = Population()
         self.population.initialize_pop()
@@ -61,7 +64,9 @@ class GeneticAlgorithm:
         self.best_of = self.population.get_best_of()
         self.set_best_execution(self.best_of)
 
-        print(f"MELHOR DA GERAÇÃO: {self.best_of}")
+        logger_term.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
+        logger_arq.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
+        
 
         for geracao in range(properties.GENERATIONS):
             population_total_fitness = self.population.get_total_fitness()
@@ -116,7 +121,13 @@ class GeneticAlgorithm:
             if self.best_of > self._best_execution:
                 self.set_best_execution(self.best_of)
 
-            print(f"MELHOR DA GERAÇÃO: {self.best_of}")
+            logger_term.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
+            logger_arq.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
+            logger_exp.info(f"{geracao},{self.best_of.get_fitness()}")
+            logger_exp.info(f"{0},{self.best_of.get_fitness()}")
 
-        print(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
-        print(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")
+        logger_term.info(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
+        logger_term.info(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")
+
+        logger_arq.info(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
+        logger_arq.info(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")

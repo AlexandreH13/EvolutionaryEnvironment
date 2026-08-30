@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+from logger import logger_term
 
 class DataProperties:
 
@@ -15,10 +16,11 @@ class DataProperties:
 
     def _load_dataset(self):
 
+        logger_term.info("Carregando dataset...")
         ext = Path(self.dataset_path+self.dataset_name).suffix
         if ext != ".csv":
-            print("Dataset não está no formato adequado: CSV")
-            print(f"Formato encontrado: {ext}")
+            logger_term.error("Dataset não está no formato adequado: CSV")
+            logger_term.error(f"Formato encontrado: {ext}")
             return None
         df = pd.read_csv(self.dataset_path+self.dataset_name)
 
@@ -27,12 +29,12 @@ class DataProperties:
 
     def remove_column(self, cols=[]):
         if not cols:
-            print("Lista de colunas vazia")
+            logger_term.error("Lista de colunas vazia")
         self.dataframe.drop(columns=cols, inplace=True)
 
     def get_num_attr(self, cols_to_remove=[]):
         if not cols_to_remove:
-            print("Deve ser passado as colunas a serem removidas para calcular o número de atibutos.")
+            logger_term.error("Deve ser passado as colunas a serem removidas para calcular o número de atibutos.")
         return len(self.dataframe.columns)-len(cols_to_remove) # Descarta coluna target
 
     def prepare_for_ga(self, batch_size=1, cols_to_remove=[], target_column="", class_name=""):
@@ -48,12 +50,14 @@ class DataProperties:
             cols_to_remove (list): Remove colunas passadas.
         """
 
+        logger_term.info("PREPARANDO DADOS PARA O AG...")
+
         if not target_column in self.dataframe.columns:
-            print(f"A coluna target {target_column} não existe.")
+            logger_term.error(f"A coluna target {target_column} não existe.")
             return None
 
         if class_name=="":
-            print("Uma classe deve ser informada.")
+            logger_term.error("Uma classe deve ser informada.")
             return None
 
         # Cópia do dataframe original
@@ -63,12 +67,15 @@ class DataProperties:
         ga_data = ga_data.sample(frac=1)
 
         if batch_size<1:
-            print(f"Selecionando amostra com batch de tamanho {batch_size}")
+            logger_term.info(f"Selecionando amostra com batch de tamanho {batch_size}")
             ga_data = ga_data.sample(frac=batch_size)
 
         if cols_to_remove:
+            if not set(cols_to_remove).issubset(self.dataframe.columns):
+                logger_term.error("Alguma coluna passada para remoção não existe")
+                return None
             ga_data.drop(columns=cols_to_remove, inplace=True)
-            print(f"Colunas removidas: {cols_to_remove}")
+            logger_term.info(f"Colunas removidas: {cols_to_remove}")
 
         # Min-max nas colunas, exceto na target
         for col in ga_data.columns:
@@ -78,7 +85,7 @@ class DataProperties:
         # Filtra por classe
         ga_data = ga_data[ga_data[target_column]==class_name]
         if ga_data.empty:
-            print(f"A classe informada não existe. Nome da classe {class_name}.")
+            logger_term.error(f"A classe informada não existe. Nome da classe {class_name}.")
             return None
 
         print(f"Dados filtrados. A classe selecionada foi {class_name}. O conjunte de dados para o treinamento agora é de {len(ga_data)}")
@@ -90,6 +97,7 @@ class DataProperties:
 
         return (X,y)
 
+        logger_term.info("DADOS PREPARADOS")
 if __name__=="__main__":
 
     dt = DataProperties("Iris.csv")

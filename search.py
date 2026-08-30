@@ -3,6 +3,8 @@ from evolve.ga import GeneticAlgorithm
 from evolve.crossover.crossover import OnePoint, TwoPoint
 from evolve.mutation.mutation import BitFlipMutation
 from data_properties import DataProperties
+from logger import logger_arq
+
 
 class Search:
 
@@ -37,24 +39,30 @@ class Search:
 
 if __name__=="__main__":
 
-    print(f"Tamanho da representação binária: {properties.BINARY_REPRESENTATION_SIZE}")
-    # Fórmula do tamanho do gene: 2+4*s
+    logger_arq.info("INICIANDO EXECUÇÃO")
+    dataset_name = "bc_wisconsin.csv"
+    logger_arq.info(f"DATASET: {dataset_name}")
+
+    # Fórmula do tamanho do gene: 2+4*s, onde s = representação binária
     gene_size = 2+4*properties.BINARY_REPRESENTATION_SIZE
-    print(f"Tamanho do gene: {gene_size}")
 
     data = DataProperties("bc_wisconsin.csv")
 
     dt = data.get_data()
-
-    print(dt.columns)
     
     # Número de atributos, desconsiderando a classe
     num_attr = data.get_num_attr(cols_to_remove=["id", "diagnosis", "Unnamed: 32"])
     properties.NUM_ATTR = num_attr
-    print(f"Número de atributos: {num_attr}")
+
     # Fórmula do tamanho do cromossomo
     properties.INDIVIDUAL_LEN = gene_size*num_attr
-    print(f"Tamanho do cromossomo: {properties.INDIVIDUAL_LEN}")
+
+    config_exec = f"""CONFIGURAÇÃO DA EXECUÇÃO: \n
+                      NÚMERO DE ATRIBUTOS: {num_attr} \n
+                      TAMANHO DA REPRESENTAÇÃO BINÁRIA: {properties.BINARY_REPRESENTATION_SIZE} \n
+                      TAMANHO DO GENE: {gene_size} \n
+                      TAMANHO DO CROMOSSOMO: {properties.INDIVIDUAL_LEN}"""
+    logger_arq.info(config_exec)
 
     Search.class_search(data, cols_to_remove=["id", "Unnamed: 32"], target_column="diagnosis", class_name="M", batch_size=properties.BATCH_SIZE)
     
