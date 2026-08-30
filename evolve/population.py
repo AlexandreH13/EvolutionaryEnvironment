@@ -6,6 +6,7 @@
 
 from evolve.properties import POPULATION_SIZE
 from evolve.individual import RuleIndividual
+from logger import logger_term
 
 class Population:
 
@@ -27,7 +28,7 @@ class Population:
     
     def initialize_pop(self):
         """Gera população inicial com tamanho POPULATION_SIZE"""
-
+        logger_term.info("Gerando população inicial...")
         for i in range(POPULATION_SIZE):
             ind = RuleIndividual()
             ind._generate_chromossome()
