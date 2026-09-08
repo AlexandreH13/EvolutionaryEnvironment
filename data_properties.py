@@ -1,20 +1,36 @@
+import openml
 import pandas as pd
 from pathlib import Path
 from logger import logger_term
 
 class DataProperties:
+    """Classe que prepara os dados para a classificação com o AG.
+    Pode ser usado um .csv ou carregado um dataset no OpenML.
+    Independente da meneira, é necessário carregar o dataset (load_dataset ou load_openml_dataset)
+    antes de chamar o get_data().
+    """
 
-    def __init__(self, dataset_name: str):
+    def __init__(self, dataset_name: str="", openml_dataset_id: int=0):
 
         self.dataset_path = "data/"
         self.dataset_name = dataset_name
-        self.dataframe = self._load_dataset()
+        self.openml_dataset_id = openml_dataset_id
+        self.dataframe = None
         self.data_properties = {}
 
     def get_data(self):
+
+        if self.dataframe.empty:
+            logger_term.error("Nenhum dataframe foi carregado.")
+            logger_term.error("Execute load_dataset ou load_openml_dataset.")
         return self.dataframe
 
-    def _load_dataset(self):
+    def load_dataset(self):
+
+        if self.dataset_name=="":
+            logger_term.error("Dataset não encontrado!")
+            logger_term.error("Para datasets locais, informe o caminho do mesmo!")
+            return 0
 
         logger_term.info("Carregando dataset...")
         ext = Path(self.dataset_path+self.dataset_name).suffix
@@ -23,9 +39,14 @@ class DataProperties:
             logger_term.error(f"Formato encontrado: {ext}")
             return None
         df = pd.read_csv(self.dataset_path+self.dataset_name)
+        self.dataframe = df
 
-        return df
+    def load_openml_dataset(self):
 
+        dataset = openml.datasets.get_dataset(self.openml_dataset_id)
+        self.dataset_name = dataset.name
+        df_data = dataset.get_data(dataset_format="dataframe")[0]
+        self.dataframe = df_data
 
     def remove_column(self, cols=[]):
         if not cols:
@@ -82,12 +103,6 @@ class DataProperties:
             if not col==target_column:
                 ga_data[col] = (ga_data[col] - ga_data[col].min())/(ga_data[col].max() - ga_data[col].min())
 
-        # Filtra por classe
-        ga_data = ga_data[ga_data[target_column]==class_name]
-        if ga_data.empty:
-            logger_term.error(f"A classe informada não existe. Nome da classe {class_name}.")
-            return None
-
         print(f"Dados filtrados. A classe selecionada foi {class_name}. O conjunte de dados para o treinamento agora é de {len(ga_data)}")
         # Obtém X
         X = ga_data.drop(columns=[target_column]).to_numpy()
@@ -95,11 +110,6 @@ class DataProperties:
         # Obtém y
         y = ga_data[target_column].to_numpy()
 
-        return (X,y)
-
         logger_term.info("DADOS PREPARADOS")
-if __name__=="__main__":
 
-    dt = DataProperties("Iris.csv")
-    dt.prepare_for_ga(batch_size=0.1, cols_to_remove=["Id"], target_column="Species", class_name="Iris-setosa")
-    
+        return (X,y)

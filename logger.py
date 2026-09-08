@@ -35,3 +35,11 @@ file_handler = logging.FileHandler("exp.log", encoding="utf-8", mode="w")
 #file_handler.setFormatter(formatter) # Sem o formatter
 logger_exp.addHandler(file_handler)
 logger_exp.propagate = False # Impede que o log suba para o root handler
+
+# 3. Logger exclusivo para salvar dados e gerar os gráficos e tabelas dos experimentos
+logger_test = logging.getLogger("test")
+logger_test.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler("test.log", encoding="utf-8", mode="w")
+#file_handler.setFormatter(formatter) # Sem o formatter
+logger_test.addHandler(file_handler)
+logger_test.propagate = False # Impede que o log suba para o root handler

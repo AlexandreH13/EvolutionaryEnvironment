@@ -66,11 +66,12 @@ class GeneticAlgorithm:
 
         logger_term.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
         logger_arq.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
+        logger_exp.info(f"{0},{self.best_of.get_fitness()}")
         
 
         for geracao in range(properties.GENERATIONS):
             population_total_fitness = self.population.get_total_fitness()
-
+            elite = self.best_of # Melhor da geracao i
             next_generation_pop = []
 
             # De dois em dois pois vamos gerar 2 filhos e no fim das iterações teremos um número de filhos igual ao total da população
@@ -106,6 +107,10 @@ class GeneticAlgorithm:
                 next_generation_pop.append(child1)
                 next_generation_pop.append(child2)
 
+            # Elitismo
+            # Melhor da geração i entra na geração i+1
+            next_generation_pop[0] = elite
+
             # Reinserção. Apenas filhos
             self.population.set_pop(next_generation_pop)
 
@@ -123,8 +128,7 @@ class GeneticAlgorithm:
 
             logger_term.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
             logger_arq.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
-            logger_exp.info(f"{geracao},{self.best_of.get_fitness()}")
-            logger_exp.info(f"{0},{self.best_of.get_fitness()}")
+            logger_exp.info(f"{geracao+1},{self.best_of.get_fitness()}")
 
         logger_term.info(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
         logger_term.info(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")
