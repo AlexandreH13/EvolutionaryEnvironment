@@ -6,7 +6,25 @@ An evolutionary environment based on Genetic Algorithms (GA), implemented in Pyt
 
 ### How to run
 
-The main script its the `search.py`. It contains the `Seach` class and the static method `class_search()`. Please check out the script to see an example of use. A reminder: each execution of the AG classifiers searches for the best classification rules for one class. Also, the configurations can be set in the `properties.py` script.
+The main script its the `search.py`. It contains the `Seach` class and the static method `class_search()`. A reminder: each execution of the AG classifiers searches for the best classification rules for one class. Also, the configurations can be set in the `properties.py` script. By default, you should set the parameters as args in terminal. The example bellow run the GA classifier for the blood transfusion dataset:
+
+```bash
+python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class
+```
+
+Here is the description for each argument:
+
+* -b: Binary size. Number of bits to represent each gene;
+* -d: OpenML dataset ID;
+* -bts: Batch size. Due to the AGs computation cost, we provide a way to select a batch size;
+* -w: Weight threshold;
+* -p: Population size;
+* -g: Number of generations;
+* -c: Name of the class the AG is searching for rules;
+* -t: The target column;
+* -r (optional): Columns to remove from the dataset.
+
+**Please allways check your dataset to see the data formats and existence of null values**.
 
 ### Citation
 

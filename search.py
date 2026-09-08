@@ -4,6 +4,7 @@ from evolve.crossover.crossover import OnePoint, TwoPoint
 from evolve.mutation.mutation import BitFlipMutation
 from data_properties import DataProperties
 from logger import logger_arq
+import argparse
 import openml
 
 
@@ -59,12 +60,48 @@ if __name__=="__main__":
     21     |   car safety
     179    |   income
 
+    Execution example for the blood transfusion dataset. No cols to remove.:
+        python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class
+
     """
+
+    parser = argparse.ArgumentParser(description="GA configuration")
+    parser.add_argument("-b", "--binsize", 
+                        type=int, help="Number of bits to define the gene size.")
+    parser.add_argument("-d", "--iddata", 
+                        type=int, help="OpenML dataset ID")
+    parser.add_argument("-bts", "--batchsize",
+                        type=float, help="Batch size")
+    parser.add_argument("-w", "--weight",
+                        type=float, help="Weight threshold")
+    parser.add_argument("-p", "--popsize",
+                        type=int, help="Population size")
+    parser.add_argument("-g", "--gen",
+                        type=int, help="Number of generations")
+    parser.add_argument("-c", "--classname",
+                        type=str, help="Class name") # Classe que o AG vai minerar regra
+    parser.add_argument("-t", "--targetcol",
+                        type=str, help="Target column")
+    parser.add_argument("-r", "--colsremove",
+                        type=str, nargs="*", 
+                        help="Cols not to use")
+
+    args = parser.parse_args()
+
+    print(args.binsize)
+    print(args.batchsize)
+
+    properties.BINARY_REPRESENTATION_SIZE = args.binsize
+    properties.BATCH_SIZE = args.batchsize
+    properties.WEIGHT_THRESHOLD = args.weight
+    properties.POPULATION_SIZE = args.popsize
+    properties.GENERATIONS = args.gen
+    properties.CLASS_NAME = args.classname
 
     logger_arq.info("INICIANDO EXECUÇÃO")
 
     # ID do dataset no OpenML
-    dataset_id=1464
+    dataset_id = args.iddata
 
     # Fórmula do tamanho do gene: 2+4*s, onde s = representação binária
     gene_size = 2+4*properties.BINARY_REPRESENTATION_SIZE
@@ -91,16 +128,24 @@ if __name__=="__main__":
     properties.MUTATION_RATE = 1 / properties.INDIVIDUAL_LEN
 
     config_exec = f"""CONFIGURAÇÃO DA EXECUÇÃO:
+                      BIN SIZE: {properties.BINARY_REPRESENTATION_SIZE}
+                      DATASET: {args.iddata}
+                      BATCH SIZE: {properties.BATCH_SIZE}
+                      WEIGHT: {properties.WEIGHT_THRESHOLD}
+                      POPULAÇÃO: {properties.POPULATION_SIZE}
+                      GERAÇÕES: {properties.GENERATIONS}
+                      CLASSE BUSCADA: {properties.CLASS_NAME}
+                      COLUNA TARGET: {args.targetcol}
                       NÚMERO DE ATRIBUTOS: {num_attr}
                       TAMANHO DA REPRESENTAÇÃO BINÁRIA: {properties.BINARY_REPRESENTATION_SIZE}
                       TAMANHO DO GENE: {gene_size}
-                      TAMANHO DO CROMOSSOMO: {properties.INDIVIDUAL_LEN}"""
+                      TAMANHO DO CROMOSSOMO: {properties.INDIVIDUAL_LEN}
+                      MUTAÇÃO: {properties.MUTATION_RATE}"""
     logger_arq.info(config_exec)
 
     colunas_para_desconsiderar = []
-    coluna_target = "Class"
-    nome_classe = "1" # Classe que o AG vai minerar regra
-    properties.CLASS_NAME=nome_classe
+    coluna_target = args.targetcol
+    class_searched = str(properties.CLASS_NAME)
 
-    Search.class_search(data, cols_to_remove=[], target_column=coluna_target, class_name=nome_classe, batch_size=properties.BATCH_SIZE)
+    Search.class_search(data, cols_to_remove=[], target_column=coluna_target, class_name=class_searched, batch_size=properties.BATCH_SIZE)
     
