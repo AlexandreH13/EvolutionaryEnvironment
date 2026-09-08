@@ -24,7 +24,7 @@ Here is the description for each argument:
 * -t: The target column;
 * -r (optional): Columns to remove from the dataset.
 
-**Please allways check your dataset to see the data formats and existence of null values**.
+**Please always check your dataset to see the data formats and existence of null values**.
 
 ### Citation
 
