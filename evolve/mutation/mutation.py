@@ -7,6 +7,8 @@
 import random
 from abc import ABC, abstractmethod
 
+random.seed()
+
 class Mutation(ABC):
 
     def __init__(self, mutation_rate=0.01):
