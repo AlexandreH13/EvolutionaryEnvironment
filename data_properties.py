@@ -1,6 +1,8 @@
 import openml
 import pandas as pd
+import numpy as np
 from pathlib import Path
+import evolve.properties as properties
 from logger import logger_term
 
 class DataProperties:
@@ -58,7 +60,7 @@ class DataProperties:
             logger_term.error("Deve ser passado as colunas a serem removidas para calcular o número de atibutos.")
         return len(self.dataframe.columns)-len(cols_to_remove) # Descarta coluna target
 
-    def prepare_for_ga(self, batch_size=1, cols_to_remove=[], target_column="", class_name=""):
+    def prepare_for_ga(self, cols_to_remove=[], target_column="", class_name=""):
         """Prepara o conjunto de dados para o AG classificador.
         Segue os seguintes passos:
         1. Batch size, se passado
@@ -81,15 +83,14 @@ class DataProperties:
             logger_term.error("Uma classe deve ser informada.")
             return None
 
+        # Batch
+        self.dataframe = self.dataframe.sample(frac=properties.BATCH_SIZE)
+
         # Cópia do dataframe original
         ga_data = self.dataframe
 
         # Shuffle
         ga_data = ga_data.sample(frac=1)
-
-        if batch_size<1:
-            logger_term.info(f"Selecionando amostra com batch de tamanho {batch_size}")
-            ga_data = ga_data.sample(frac=batch_size)
 
         if cols_to_remove:
             if not set(cols_to_remove).issubset(self.dataframe.columns):
@@ -103,7 +104,7 @@ class DataProperties:
             if not col==target_column:
                 ga_data[col] = (ga_data[col] - ga_data[col].min())/(ga_data[col].max() - ga_data[col].min())
 
-        print(f"Dados filtrados. A classe selecionada foi {class_name}. O conjunte de dados para o treinamento agora é de {len(ga_data)}")
+        logger_term.info(f"Dados filtrados. A classe selecionada foi {class_name}. O conjunto de dados para o treinamento agora é de {len(ga_data)}")
         # Obtém X
         X = ga_data.drop(columns=[target_column]).to_numpy()
 
