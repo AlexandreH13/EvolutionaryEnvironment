@@ -19,12 +19,11 @@ class Search:
     """
 
     @staticmethod
-    def class_search(data: tuple, cols_to_remove: list, target_column: str, class_name: str, batch_size: int):
+    def class_search(data: tuple, cols_to_remove: list, target_column: str, class_name: str):
 
         ## FAZER: Função que verifica se colunas são do tipo float
 
-        X,y = data.prepare_for_ga(
-            batch_size=batch_size, 
+        X,y = data.prepare_for_ga( 
             cols_to_remove=cols_to_remove, 
             target_column=target_column, 
             class_name=class_name)
@@ -88,9 +87,6 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    print(args.binsize)
-    print(args.batchsize)
-
     properties.BINARY_REPRESENTATION_SIZE = args.binsize
     properties.BATCH_SIZE = args.batchsize
     properties.WEIGHT_THRESHOLD = args.weight
@@ -110,9 +106,6 @@ if __name__=="__main__":
 
     # Carrega o dataframe
     data.load_openml_dataset()
-
-    # DataFrame
-    dt = data.get_data()
 
     #dataset_name = "Heart/heart.csv"
     dataset_name = data.dataset_name
@@ -147,5 +140,5 @@ if __name__=="__main__":
     coluna_target = args.targetcol
     class_searched = str(properties.CLASS_NAME)
 
-    Search.class_search(data, cols_to_remove=[], target_column=coluna_target, class_name=class_searched, batch_size=properties.BATCH_SIZE)
+    Search.class_search(data, cols_to_remove=[], target_column=coluna_target, class_name=class_searched)
     
