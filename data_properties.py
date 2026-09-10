@@ -90,7 +90,7 @@ class DataProperties:
         ga_data = self.dataframe
 
         # Shuffle
-        ga_data = ga_data.sample(frac=1)
+        ga_data = ga_data.sample(frac=1, random_state=properties.SEED)
 
         if cols_to_remove:
             if not set(cols_to_remove).issubset(self.dataframe.columns):

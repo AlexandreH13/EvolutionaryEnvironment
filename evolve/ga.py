@@ -11,6 +11,8 @@ import evolve.properties as properties
 from evolve.rules.rules import Rules
 from logger import logger_arq, logger_term, logger_exp
 
+random.seed(properties.SEED)
+
 class GeneticAlgorithm:
 
     def __init__(self, crossover=None, mutation=None):
