@@ -84,6 +84,8 @@ if __name__=="__main__":
     parser.add_argument("-r", "--colsremove",
                         type=str, nargs="*", 
                         help="Cols not to use")
+    parser.add_argument("-s", "--seed",
+                        type=int, help="Random seed")
 
     args = parser.parse_args()
 
@@ -93,6 +95,7 @@ if __name__=="__main__":
     properties.POPULATION_SIZE = args.popsize
     properties.GENERATIONS = args.gen
     properties.CLASS_NAME = args.classname
+    properties.SEED = args.seed
 
     logger_arq.info("INICIANDO EXECUÇÃO")
 
@@ -121,6 +124,7 @@ if __name__=="__main__":
     properties.MUTATION_RATE = 1 / properties.INDIVIDUAL_LEN
 
     config_exec = f"""CONFIGURAÇÃO DA EXECUÇÃO:
+                      SEED: {properties.SEED}
                       BIN SIZE: {properties.BINARY_REPRESENTATION_SIZE}
                       DATASET: {args.iddata}
                       BATCH SIZE: {properties.BATCH_SIZE}

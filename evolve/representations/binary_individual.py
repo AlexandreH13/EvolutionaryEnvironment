@@ -10,6 +10,8 @@ import random
 from evolve.crossover.crossover import Crossover
 from evolve.mutation.mutation import Mutation
 
+random.seed(properties.SEED)
+
 class BinaryIndividual(ABC):
 
     def __init__(self):

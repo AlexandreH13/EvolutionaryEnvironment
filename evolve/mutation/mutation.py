@@ -5,9 +5,10 @@
 """
 
 import random
+import evolve.properties as properties
 from abc import ABC, abstractmethod
 
-random.seed()
+random.seed(properties.SEED)
 
 class Mutation(ABC):
 

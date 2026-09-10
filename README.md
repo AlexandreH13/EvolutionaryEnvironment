@@ -9,7 +9,7 @@ An evolutionary environment based on Genetic Algorithms (GA), implemented in Pyt
 The main script its the `search.py`. It contains the `Seach` class and the static method `class_search()`. A reminder: each execution of the AG classifiers searches for the best classification rules for one class. Also, the configurations can be set in the `properties.py` script. By default, you should set the parameters as args in terminal. The example bellow run the GA classifier for the blood transfusion dataset:
 
 ```bash
-python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class
+python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class -s 42
 ```
 
 Here is the description for each argument:
@@ -22,7 +22,8 @@ Here is the description for each argument:
 * -g: Number of generations;
 * -c: Name of the class the AG is searching for rules;
 * -t: The target column;
-* -r (optional): Columns to remove from the dataset.
+* -r (optional): Columns to remove from the dataset;
+* -s: Random seed.
 
 **Please always check your dataset to see the data formats and existence of null values**.
 
