@@ -4,6 +4,7 @@ import random
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from itertools import compress, cycle, batched
 import evolve.properties as properties
+from logger import logger_term
 
 class Rules:
 
@@ -158,8 +159,8 @@ class Rules:
         Por exemplo: recebe um gene e o valor do atributo. o gene vai possuir o valor e o operador.
         A depender do operador, criamos a condição abaixo e retornamos o valor booleano.
         Gene-> operador: >=; valor: 0.5
-        Atributo-> 0.45
-        Resultado-> 0.5>=0.45 => True
+        Atributo-> 0.6
+        Resultado-> 0.6>=0.5 => True
 
         operator_value: int
             Valor que representa o operador. 0 é '>=' e 1 é '<'.
@@ -172,10 +173,10 @@ class Rules:
         condicao = False
         # 0 é >=
         if operator_value==0:
-            condicao = value_segment>=attr_value
+            condicao = attr_value>=value_segment
         # 1 é <
         else:
-            condicao = value_segment<attr_value
+            condicao = attr_value<value_segment
         return condicao
 
     @staticmethod
@@ -202,13 +203,13 @@ class Rules:
             atributo_verificado = _interval//2 # a qual atributo pertence o intervalo
 
             # String da condição
-            condicao_attr = f"{values[_interval]} {Rules.get_string_operator(operators[_interval])} {attr_list[atributo_verificado]}" 
+            condicao_attr = f"{attr_list[atributo_verificado]} {Rules.get_string_operator(operators[_interval])} {values[_interval]}"
             # Se não for o último intervalo do cromossomo
             if _i+1 < len(_valid_interval):
                 # Se o próximo intervalo for do mesmo atributo que intervalo dessa iteração, é uma condição com OU
                 proximo_intervalo = _valid_interval[_i + 1]
                 if proximo_intervalo //2 == atributo_verificado:
-                    condicao_attr_dir = f"OR {values[proximo_intervalo]} {Rules.get_string_operator(operators[proximo_intervalo])} {attr_list[atributo_verificado]}"
+                    condicao_attr_dir = f"OR {attr_list[atributo_verificado]} {Rules.get_string_operator(operators[proximo_intervalo])} {values[proximo_intervalo]}"
                     condicao_attr = "("+condicao_attr + " " + condicao_attr_dir+")"
                     condicoes_list.append(condicao_attr)
                     _i+=2
@@ -250,13 +251,13 @@ class Rules:
             atributo_verificado = _interval//2 # a qual atributo pertence o intervalo
 
             # String da condição
-            condicao_attr = f"{values[_interval]} {Rules.get_string_operator(operators[_interval])} ATTR{atributo_verificado}" 
+            condicao_attr = f"ATTR{atributo_verificado} {Rules.get_string_operator(operators[_interval])} {values[_interval]}"
             # Se não for o último intervalo do cromossomo
             if _i+1 < len(_valid_interval):
                 # Se o próximo intervalo for do mesmo atributo que intervalo dessa iteração, é uma condição com OU
                 proximo_intervalo = _valid_interval[_i + 1]
                 if proximo_intervalo //2 == atributo_verificado:
-                    condicao_attr_dir = f"OR {values[proximo_intervalo]} {Rules.get_string_operator(operators[proximo_intervalo])} ATTR{atributo_verificado}"
+                    condicao_attr_dir = f"OR ATTR{atributo_verificado} {Rules.get_string_operator(operators[proximo_intervalo])} {values[proximo_intervalo]}"
                     condicao_attr = "("+condicao_attr + " " + condicao_attr_dir+")"
                     condicoes_list.append(condicao_attr)
                     _i+=2
@@ -310,8 +311,8 @@ class Rules:
         # Cada gene tem duas partições (intervalo superior e inferior)
         # Para obter o atributo da partição ativa, usamos: índice_particao//2
         _valid_interval = Rules.get_active_segment(pesos, properties.WEIGHT_THRESHOLD)
-        print(f"PESOS: {pesos}")
-        print(f"INTERVALOS ATIVOS: {_valid_interval}")
+        logger_term.debug("PESOS: %s", pesos)
+        logger_term.debug("INTERVALOS ATIVOS: %s", _valid_interval)
 
         # Se nenhum intervalo (esquerdo ou direito) for válido, regra não é válida.
         if not _valid_interval:
@@ -321,7 +322,7 @@ class Rules:
         operators = Rules.get_operator(crom, properties.BINARY_REPRESENTATION_SIZE)
         # Valores (V) do cromossomo
         values = Rules.get_decimal_value(crom, properties.BINARY_REPRESENTATION_SIZE)
-        print(f"VALORES: {values}")
+        logger_term.debug("VALORES: %s", values)
 
         # Faz mapeamento apenas se houver intervalos válidos
         if valid_rule:
@@ -334,7 +335,7 @@ class Rules:
                 _interval = _valid_interval[_i]
                 # Índice do atributo que pertence ao intervalo
                 atributo_verificado = _interval//2
-                print(f"VERIFICAÇÃO DO INTERVALO {_interval} PARA O ATRIBUTO {attr_list[atributo_verificado]}")
+                logger_term.debug("VERIFICAÇÃO DO INTERVALO %s PARA O ATRIBUTO %s", _interval, attr_list[atributo_verificado])
 
                 # Obtém valor booleano da condição formada pelo gene
                 valor_bool_condicao_esq = Rules.get_condition_for_gene(operators[_interval], values[_interval], attr_list[atributo_verificado])
@@ -344,7 +345,7 @@ class Rules:
                     proximo_intervalo = _valid_interval[_i + 1]
                     # Se o próximo segmento válido pertence ao mesmo atributo (gene), é uma regra com conector OU
                     if proximo_intervalo //2 == atributo_verificado:
-                        print(f"Intervalo {_interval} e seu conseguinte {proximo_intervalo} são do mesmo atributo {atributo_verificado}")
+                        logger_term.debug("Intervalo %s e seu conseguinte %s são do mesmo atributo %s", _interval, proximo_intervalo, atributo_verificado)
                         # Primeira condição à esquerda é o valor_bool_condicao_esq
                         # Segunda condição à direita
                         valor_bool_condicao_dir = Rules.get_condition_for_gene(operators[proximo_intervalo], values[proximo_intervalo], attr_list[atributo_verificado])
@@ -365,11 +366,9 @@ class Rules:
                     break
 
         if valid_rule:
-            print("REGRA CLASSIFICA")
-            print(f"REGRA: {Rules.get_rule_attribute_str(crom, attr_list)}")
+            logger_term.debug("REGRA CLASSIFICA")
         else:
-            print("REGRA NÃO CLASSIFICA")
-            print(f"REGRA: {Rules.get_rule_attribute_str(crom, attr_list)}")
+            logger_term.debug("REGRA NÃO CLASSIFICA")
 
         return valid_rule
 

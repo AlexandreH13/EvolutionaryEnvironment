@@ -10,8 +10,13 @@ MUTATION_RATE=0
 POPULATION_SIZE=100
 
 # Dataset
+IDDATASET=0
 NUM_ATTR = 0 # Será definido pelo dataset
 CLASS_NAME=""
 
 # Experimento
 SEED=0
+CONFIG=0
+
+# Depuração
+VERBOSE=False

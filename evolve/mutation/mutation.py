@@ -8,8 +8,6 @@ import random
 import evolve.properties as properties
 from abc import ABC, abstractmethod
 
-random.seed(properties.SEED)
-
 class Mutation(ABC):
 
     def __init__(self, mutation_rate=0.01):

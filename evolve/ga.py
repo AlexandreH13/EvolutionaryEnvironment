@@ -11,8 +11,6 @@ import evolve.properties as properties
 from evolve.rules.rules import Rules
 from logger import logger_arq, logger_term, logger_exp
 
-random.seed(properties.SEED)
-
 class GeneticAlgorithm:
 
     def __init__(self, crossover=None, mutation=None):
@@ -132,8 +130,11 @@ class GeneticAlgorithm:
             logger_arq.info(f"MELHOR DA GERAÇÃO: {self.best_of}")
             logger_exp.info(f"{geracao+1},{self.best_of.get_fitness()}")
 
-        logger_term.info(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
-        logger_term.info(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")
+        melhor_execucao_str = str(self._best_execution)
+        regra_melhor_solucao = Rules.get_rule_attribute_str_final(self._best_execution)
 
-        logger_arq.info(f"MELHOR SOLUÇÃO ENCONTRADA: {self._best_execution}")
-        logger_arq.info(f"REGRA DA MELHOR SOLUÇÃO: {Rules.get_rule_attribute_str_final(self._best_execution)}")
+        logger_term.info(f"MELHOR SOLUÇÃO ENCONTRADA: {melhor_execucao_str}")
+        logger_term.info(f"REGRA DA MELHOR SOLUÇÃO: {regra_melhor_solucao}")
+
+        logger_arq.info(f"MELHOR SOLUÇÃO ENCONTRADA: {melhor_execucao_str}")
+        logger_arq.info(f"REGRA DA MELHOR SOLUÇÃO: {regra_melhor_solucao}")
