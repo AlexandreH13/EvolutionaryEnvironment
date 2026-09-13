@@ -3,9 +3,10 @@ from evolve.ga import GeneticAlgorithm
 from evolve.crossover.crossover import OnePoint, TwoPoint
 from evolve.mutation.mutation import BitFlipMutation
 from data_properties import DataProperties
-from logger import logger_arq
+from logger import init_file_loggers, logger_arq
 import argparse
 import openml
+import random
 
 
 class Search:
@@ -60,8 +61,7 @@ if __name__=="__main__":
     179    |   income
 
     Execution example for the blood transfusion dataset. No cols to remove.:
-        python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class
-
+        python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class -s 0 -cf 0 -v(only for verbose logs in terminal)
     """
 
     parser = argparse.ArgumentParser(description="GA configuration")
@@ -86,6 +86,10 @@ if __name__=="__main__":
                         help="Cols not to use")
     parser.add_argument("-s", "--seed",
                         type=int, help="Random seed")
+    parser.add_argument("-cf", "--config",
+                            type=int, help="Config ID")
+    parser.add_argument("-v", "--verbose",
+                            action="store_true", help="Ativa logs detalhados por linha de dado (impacta performance)")
 
     args = parser.parse_args()
 
@@ -94,8 +98,14 @@ if __name__=="__main__":
     properties.WEIGHT_THRESHOLD = args.weight
     properties.POPULATION_SIZE = args.popsize
     properties.GENERATIONS = args.gen
+    properties.IDDATASET = args.iddata
     properties.CLASS_NAME = args.classname
     properties.SEED = args.seed
+    properties.CONFIG = args.config
+    properties.VERBOSE = args.verbose
+
+    random.seed(properties.SEED) # Precisa ser chamado só depois de properties.SEED estar definido
+    init_file_loggers() # Precisa ser chamado só depois de properties.CLASS_NAME/SEED/CONFIG estarem definidos
 
     logger_arq.info("INICIANDO EXECUÇÃO")
 

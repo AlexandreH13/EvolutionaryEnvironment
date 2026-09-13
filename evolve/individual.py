@@ -43,7 +43,7 @@ class RuleIndividual(BinaryIndividual):
         fn = 0
     
         for data, real in zip(X, y):
-            logger_term.info(f"============================ Dado: {data} ============================")
+            logger_term.debug("============================ Dado: %s ============================", data)
             classify = Rules.map_cromosome_to_rule(
                 self.get_chromossome(), 
                 data)
