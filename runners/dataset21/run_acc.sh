@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Runs from the folder root "EvolutionaryEnvironment"
-cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 
 # 20 seeds
 SEEDS=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
@@ -22,13 +22,13 @@ do
 
             python3 search.py \
                 -b 6 \
-                -d 37 \
+                -d 21 \
                 -bts 1 \
                 -w 0.6 \
                 -p 100 \
                 -g 100 \
-                -c "tested_positive" \
-                -t class\
+                -c "acc" \
+                -t class \
                 -s $SEED\
                 -cf $CONFIG
 
@@ -36,13 +36,13 @@ do
 
             python3 search.py \
                 -b 8 \
-                -d 37 \
+                -d 21 \
                 -bts 1 \
                 -w 0.6 \
                 -p 100 \
                 -g 100 \
-                -c "tested_positive" \
-                -t class\
+                -c "acc" \
+                -t class \
                 -s $SEED\
                 -cf $CONFIG
 
@@ -50,13 +50,13 @@ do
 
             python3 search.py \
                 -b 10 \
-                -d 37 \
+                -d 21 \
                 -bts 1 \
                 -w 0.6 \
                 -p 100 \
                 -g 100 \
-                -c "tested_positive" \
-                -t class\
+                -c "acc" \
+                -t class \
                 -s $SEED\
                 -cf $CONFIG
 
@@ -64,13 +64,13 @@ do
 
             python3 search.py \
                 -b 12 \
-                -d 37 \
+                -d 21 \
                 -bts 1 \
                 -w 0.6 \
                 -p 100 \
                 -g 100 \
-                -c "tested_positive" \
-                -t class\
+                -c "acc" \
+                -t class \
                 -s $SEED\
                 -cf $CONFIG
 
