@@ -19,6 +19,9 @@ class DataProperties:
         self.openml_dataset_id = openml_dataset_id
         self.dataframe = None
         self.data_properties = {}
+        self.categorical_indicator = None
+        self.attribute_names = None
+        self.categorical_dummy_map = {}
 
     def get_data(self):
 
@@ -47,13 +50,56 @@ class DataProperties:
 
         dataset = openml.datasets.get_dataset(self.openml_dataset_id)
         self.dataset_name = dataset.name
-        df_data = dataset.get_data(dataset_format="dataframe")[0]
+        df_data, _, categorical_indicator, attribute_names = dataset.get_data(dataset_format="dataframe")
         self.dataframe = df_data
+        self.categorical_indicator = categorical_indicator
+        self.attribute_names = attribute_names
 
     def remove_column(self, cols=[]):
         if not cols:
             logger_term.error("Lista de colunas vazia")
         self.dataframe.drop(columns=cols, inplace=True)
+
+    def encode_categoricals(self, target_column=""):
+        """
+        Codifica colunas categóricas via one-hot (pd.get_dummies), substituindo-as no
+        dataframe por colunas binárias (uma por categoria). Necessário porque o BIN-NLCEE
+        só representa condições de intervalo (>=, <), que não fazem sentido pra atributos
+        nominais sem ordem.
+
+        Detecção de quais colunas são categóricas: usa o categorical_indicator do OpenML
+        quando disponível (setado por load_openml_dataset); senão, detecta automaticamente
+        colunas com dtype object/category (caso de dataset local via load_dataset).
+
+        Mantém self.categorical_dummy_map = {nome_da_dummy: (atributo_original, categoria)},
+        usado depois para decodificar a regra de volta (ver denormalize_rule.py) e para
+        prepare_for_ga() pular a normalização min-max nessas colunas (já estão em [0,1]).
+        """
+        if self.categorical_indicator is not None and self.attribute_names is not None:
+            categorical_columns = [
+                name for name, is_cat in zip(self.attribute_names, self.categorical_indicator)
+                if is_cat and name != target_column and name in self.dataframe.columns
+            ]
+        else:
+            categorical_columns = [
+                col for col in self.dataframe.columns
+                if col != target_column and self.dataframe[col].dtype.name in ("object", "category")
+            ]
+
+        if not categorical_columns:
+            logger_term.info("Nenhuma coluna categórica detectada.")
+            return []
+
+        self.categorical_dummy_map = {}
+        for col in categorical_columns:
+            dummies = pd.get_dummies(self.dataframe[col], prefix=col).astype(float)
+            for dummy_col in dummies.columns:
+                category = dummy_col[len(col) + 1:]
+                self.categorical_dummy_map[dummy_col] = (col, category)
+            self.dataframe = pd.concat([self.dataframe.drop(columns=[col]), dummies], axis=1)
+
+        logger_term.info(f"Colunas categóricas codificadas (one-hot): {categorical_columns}")
+        return categorical_columns
 
     def get_num_attr(self, cols_to_remove=[]):
         if not cols_to_remove:
@@ -99,9 +145,9 @@ class DataProperties:
             ga_data.drop(columns=cols_to_remove, inplace=True)
             logger_term.info(f"Colunas removidas: {cols_to_remove}")
 
-        # Min-max nas colunas, exceto na target
+        # Min-max nas colunas, exceto na target e nas colunas categóricas (one-hot, já em [0,1])
         for col in ga_data.columns:
-            if not col==target_column:
+            if col != target_column and col not in self.categorical_dummy_map:
                 ga_data[col] = (ga_data[col] - ga_data[col].min())/(ga_data[col].max() - ga_data[col].min())
 
         logger_term.info(f"Dados filtrados. A classe selecionada foi {class_name}. O conjunto de dados para o treinamento agora é de {len(ga_data)}")
