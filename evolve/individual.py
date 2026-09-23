@@ -53,7 +53,11 @@ class RuleIndividual(BinaryIndividual):
             predicted_positive = bool(classify)
 
             # O registro realmente pertence à classe?
-            real_positive = (real == classe)
+            # Comparação como string: "real" vem com o dtype bruto da coluna target
+            # (ex. numpy.uint8 em datasets com classe numérica, como o heart disease),
+            # enquanto "classe" é sempre string (search.py faz str(properties.CLASS_NAME)).
+            # Comparar tipos potencialmente diferentes direto (1 == "1") é sempre False.
+            real_positive = (str(real) == classe)
 
             if predicted_positive and real_positive:
                 vp += 1
