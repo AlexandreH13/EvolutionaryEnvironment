@@ -123,13 +123,7 @@ if __name__=="__main__":
     #dataset_name = "Heart/heart.csv"
     dataset_name = data.dataset_name
     logger_arq.info(f"DATASET: {dataset_name}")
-
-    # Codifica colunas categóricas via one-hot ANTES de contar atributos — o BIN-NLCEE só
-    # representa condições de intervalo (>=, <), que não fazem sentido pra atributos nominais.
-    # Precisa vir antes de get_num_attr(), já que o tamanho do cromossomo depende do número
-    # de colunas já expandidas (cada categoria vira uma coluna/gene binário próprio).
-    data.encode_categoricals(target_column=args.targetcol)
-
+    
     # Número de atributos, desconsiderando a classe e id, quando houver
     num_attr = data.get_num_attr(cols_to_remove=["Class"])
     properties.NUM_ATTR = num_attr
