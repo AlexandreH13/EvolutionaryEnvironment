@@ -51,14 +51,14 @@ if __name__=="__main__":
 
     ID     |   Name
     37     |   diabetes
-    1461   |   bank
+    1461   |   bank (categorical values)
     1464   |   blood transfusion
     15     |   breast-w
-    29     |   credit approval
-    43939  |   california housing
+    29     |   credit approval (categorical values)
+    43939  |   california housing (categorical values)
     43672  |   heart disease
-    21     |   car safety
-    179    |   income
+    21     |   car safety (categorical values)
+    179    |   income (categorical values)
 
     Execution example for the blood transfusion dataset. No cols to remove.:
         python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class -s 0 -cf 0 -v(only for verbose logs in terminal)
@@ -123,9 +123,12 @@ if __name__=="__main__":
     #dataset_name = "Heart/heart.csv"
     dataset_name = data.dataset_name
     logger_arq.info(f"DATASET: {dataset_name}")
-    
-    # Número de atributos, desconsiderando a classe e id, quando houver
-    num_attr = data.get_num_attr(cols_to_remove=["Class"])
+
+    coluna_target = args.targetcol
+    cols_to_remove = args.colsremove or []
+
+    # Número de atributos, desconsiderando a coluna target e as colunas extras passadas em -r/--colsremove (ex. ID)
+    num_attr = data.get_num_attr(cols_to_remove=[coluna_target] + cols_to_remove)
     properties.NUM_ATTR = num_attr
 
     # Fórmula do tamanho do cromossomo
@@ -150,9 +153,7 @@ if __name__=="__main__":
                       MUTAÇÃO: {properties.MUTATION_RATE}"""
     logger_arq.info(config_exec)
 
-    colunas_para_desconsiderar = []
-    coluna_target = args.targetcol
     class_searched = str(properties.CLASS_NAME)
 
-    Search.class_search(data, cols_to_remove=[], target_column=coluna_target, class_name=class_searched)
+    Search.class_search(data, cols_to_remove=cols_to_remove, target_column=coluna_target, class_name=class_searched)
     
