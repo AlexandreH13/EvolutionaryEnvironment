@@ -4,6 +4,7 @@ from evolve.crossover.crossover import OnePoint, TwoPoint
 from evolve.mutation.mutation import BitFlipMutation
 from data_properties import DataProperties
 from logger import init_file_loggers, logger_arq
+from pathlib import Path
 import argparse
 import openml
 import random
@@ -62,13 +63,20 @@ if __name__=="__main__":
 
     Execution example for the blood transfusion dataset. No cols to remove.:
         python3 search.py -b 8 -d 1464 -bts 0.8 -w 0.6 -p 100 -g 100 -c 1 -t Class -s 0 -cf 0 -v(only for verbose logs in terminal)
+
+    Execution example for a local CSV (ex. credit approval after preprocess_categorical.ipynb):
+        python3 search.py -b 8 -f data/preprocessed/credit-approval_29_classx2b.csv -bts 1.0 -w 0.6 -p 100 -g 100 -c + -t class -s 1 -cf 1
     """
 
     parser = argparse.ArgumentParser(description="GA configuration")
     parser.add_argument("-b", "--binsize", 
                         type=int, help="Number of bits to define the gene size.")
-    parser.add_argument("-d", "--iddata", 
+    # Origem dos dados: dataset do OpenML (-d) ou CSV local (-f), ex. gerado pelo preprocess_categorical.ipynb
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("-d", "--iddata",
                         type=int, help="OpenML dataset ID")
+    source.add_argument("-f", "--file",
+                        type=str, help="Caminho de um CSV local")
     parser.add_argument("-bts", "--batchsize",
                         type=float, help="Batch size")
     parser.add_argument("-w", "--weight",
@@ -98,7 +106,8 @@ if __name__=="__main__":
     properties.WEIGHT_THRESHOLD = args.weight
     properties.POPULATION_SIZE = args.popsize
     properties.GENERATIONS = args.gen
-    properties.IDDATASET = args.iddata
+    # Usado no nome dos arquivos de log. Para CSV, usa o nome do arquivo sem extensão
+    properties.IDDATASET = args.iddata if args.iddata is not None else Path(args.file).stem
     properties.CLASS_NAME = args.classname
     properties.SEED = args.seed
     properties.CONFIG = args.config
@@ -109,18 +118,19 @@ if __name__=="__main__":
 
     logger_arq.info("INICIANDO EXECUÇÃO")
 
-    # ID do dataset no OpenML
-    dataset_id = args.iddata
-
     # Fórmula do tamanho do gene: 2+4*s, onde s = representação binária
     gene_size = 2+4*properties.BINARY_REPRESENTATION_SIZE
 
-    data = DataProperties(openml_dataset_id=dataset_id)
-
     # Carrega o dataframe
-    data.load_openml_dataset()
+    if args.file:
+        data = DataProperties(dataset_name=args.file)
+        data.load_dataset()
+        dataset_source = f"ARQUIVO: {args.file}"
+    else:
+        data = DataProperties(openml_dataset_id=args.iddata)
+        data.load_openml_dataset()
+        dataset_source = f"DATASET: {args.iddata}"
 
-    #dataset_name = "Heart/heart.csv"
     dataset_name = data.dataset_name
     logger_arq.info(f"DATASET: {dataset_name}")
 
@@ -139,7 +149,7 @@ if __name__=="__main__":
     config_exec = f"""CONFIGURAÇÃO DA EXECUÇÃO:
                       SEED: {properties.SEED}
                       BIN SIZE: {properties.BINARY_REPRESENTATION_SIZE}
-                      DATASET: {args.iddata}
+                      {dataset_source}
                       BATCH SIZE: {properties.BATCH_SIZE}
                       WEIGHT: {properties.WEIGHT_THRESHOLD}
                       POPULAÇÃO: {properties.POPULATION_SIZE}
