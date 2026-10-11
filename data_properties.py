@@ -28,20 +28,22 @@ class DataProperties:
         return self.dataframe
 
     def load_dataset(self):
+        """Carrega um CSV local. dataset_name é o caminho do arquivo, usado como recebido
+        (relativo ao diretório de execução ou absoluto). Após carregar, dataset_name passa a ser
+        o nome do arquivo sem extensão."""
 
         if self.dataset_name=="":
-            logger_term.error("Dataset não encontrado!")
-            logger_term.error("Para datasets locais, informe o caminho do mesmo!")
-            return 0
+            raise ValueError("Para datasets locais, informe o caminho do CSV.")
+
+        path = Path(self.dataset_name)
+        if path.suffix != ".csv":
+            raise ValueError(f"Dataset não está no formato adequado: CSV. Formato encontrado: {path.suffix}")
+        if not path.is_file():
+            raise FileNotFoundError(f"Arquivo não encontrado: {path}")
 
         logger_term.info("Carregando dataset...")
-        ext = Path(self.dataset_path+self.dataset_name).suffix
-        if ext != ".csv":
-            logger_term.error("Dataset não está no formato adequado: CSV")
-            logger_term.error(f"Formato encontrado: {ext}")
-            return None
-        df = pd.read_csv(self.dataset_path+self.dataset_name)
-        self.dataframe = df
+        self.dataframe = pd.read_csv(path)
+        self.dataset_name = path.stem
 
     def load_openml_dataset(self):
 
@@ -98,6 +100,14 @@ class DataProperties:
                 return None
             ga_data.drop(columns=cols_to_remove, inplace=True)
             logger_term.info(f"Colunas removidas: {cols_to_remove}")
+
+        # O AG só representa condições numéricas (>=, <)
+        non_numeric = [c for c in ga_data.columns
+                       if c != target_column and not pd.api.types.is_numeric_dtype(ga_data[c])]
+        if non_numeric:
+            raise ValueError(
+                f"Colunas não numéricas: {non_numeric}. "
+                "Use o preprocess_categorical.ipynb (e rode com -f) ou remova-as com -r.")
 
         # Min-max nas colunas, exceto na target
         for col in ga_data.columns:

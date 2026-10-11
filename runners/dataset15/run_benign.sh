@@ -14,7 +14,7 @@ SEEDS=(1 2 3 4 5 6 7 8 9 10
 for CONFIG in 1
 do
 
-    for SEED in "${SEEDS[@]}"
+    for SEED in "${SEEDS[@]}"   
     do
 
         echo "=========================================="
