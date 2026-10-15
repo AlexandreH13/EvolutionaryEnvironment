@@ -9,6 +9,8 @@
 # Exemplos (credit-approval, problema binário: o mesmo CSV serve para as duas classes):
 #   runners/run_csv.sh data/preprocessed/credit-approval_29_classx2b.csv "+" class
 #   runners/run_csv.sh data/preprocessed/credit-approval_29_classx2b.csv "-" class
+#   runners/run_csv.sh data/preprocessed/1461/bank-marketing_1461_class1.csv "1" Class
+#   runners/run_csv.sh data/preprocessed/179/adult_179_classx3cx3d50K.csv "<=50K" class
 #
 # O caminho do CSV é relativo à raiz "EvolutionaryEnvironment" (ou absoluto).
 # Ative o venv "experimentos" antes de rodar (o script usa o python3 do terminal).

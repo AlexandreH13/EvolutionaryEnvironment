@@ -41,12 +41,16 @@ class RuleIndividual(BinaryIndividual):
         fp = 0
         vn = 0
         fn = 0
-    
+
+        # Decodifica o cromossomo uma única vez para o indivíduo, em vez de uma vez por linha
+        decoded = Rules.decode_chromosome(self.get_chromossome())
+
         for data, real in zip(X, y):
             logger_term.debug("============================ Dado: %s ============================", data)
             classify = Rules.map_cromosome_to_rule(
                 self.get_chromossome(), 
-                data)
+                data,
+                decoded) # Cromossomo decodificado
             
             # A regra classificou o registro como pertencente
             # à classe que está sendo evoluída?

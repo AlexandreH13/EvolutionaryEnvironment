@@ -275,8 +275,35 @@ class Rules:
         rule_str = "IF"+" AND ".join(condicoes_list)
         return rule_str
 
+    def decode_chromosome(crom: list):
+          """Decodifica o cromossomo (genótipo) uma única vez: pesos (W) -> intervalos ativos,
+          operadores (O) e valores (V). Depende só do cromossomo, não do dado classificado, então
+          pode ser calculado uma vez por indivíduo e reaproveitado para todas as linhas do dataset
+          em map_cromosome_to_rule (parâmetro decoded).
+
+          Retorna:
+              (operators, values, valid_interval)
+          """
+
+          pesos = Rules.get_decimal_weights(crom, properties.BINARY_REPRESENTATION_SIZE)
+
+          # Indices da partição válida. É uma lista
+          # Cada gene tem duas partições (intervalo superior e inferior)
+          # Para obter o atributo da partição ativa, usamos: índice_particao//2
+          valid_interval = Rules.get_active_segment(pesos, properties.WEIGHT_THRESHOLD)
+          logger_term.debug("PESOS: %s", pesos)
+          logger_term.debug("INTERVALOS ATIVOS: %s", valid_interval)
+
+          # Operadores do cromossomo
+          operators = Rules.get_operator(crom, properties.BINARY_REPRESENTATION_SIZE)
+          # Valores (V) do cromossomo
+          values = Rules.get_decimal_value(crom, properties.BINARY_REPRESENTATION_SIZE)
+          logger_term.debug("VALORES: %s", values)
+
+          return operators, values, valid_interval
+
     @staticmethod
-    def map_cromosome_to_rule(crom: str, attr_list: list):
+    def map_cromosome_to_rule(crom: str, attr_list: list, decoded: tuple=None):
         """Mapeamento do genótipo para o fenótipo. Verifica se a regra obtida pelo cromossomo classifica
         um dado. Recebe a lista dos valores dos atributos, transforma o cromossomo na regra e classifica.
         A classificação ocorre verificando cada intervalo dos genes que estão ativos. É verificado também a qual
@@ -297,6 +324,9 @@ class Rules:
             Cromossomo no formato binário.
         attr_list: list
             Lista com os valores dos atributos.
+        decoded: tuple
+            Opcional. Saída de decode_chromosome(crom). Se não for passado, o cromossomo é
+            decodificado aqui (mais lento quando a função é chamada para várias linhas)
         """
 
         if not crom:
@@ -305,24 +335,14 @@ class Rules:
         # Uma regra válida (cromossomo) é aquela onde todas as condições (genes) são True
         valid_rule = True
 
-        pesos = Rules.get_decimal_weights(crom, properties.BINARY_REPRESENTATION_SIZE)
+        # Decodificação do cromossomo. Se já veio pronta (decoded), é reaproveitada
+        if decoded is None:
+            decoded = Rules.decode_chromosome(crom)
+        operators, values, _valid_interval = decoded
 
-        # Indices da partição válida. É uma lista
-        # Cada gene tem duas partições (intervalo superior e inferior)
-        # Para obter o atributo da partição ativa, usamos: índice_particao//2
-        _valid_interval = Rules.get_active_segment(pesos, properties.WEIGHT_THRESHOLD)
-        logger_term.debug("PESOS: %s", pesos)
-        logger_term.debug("INTERVALOS ATIVOS: %s", _valid_interval)
-
-        # Se nenhum intervalo (esquerdo ou direito) for válido, regra não é válida.
+          # Se nenhum intervalo (esquerdo ou direito) for válido, regra não é válida.
         if not _valid_interval:
             valid_rule = False
-
-        # Operadores do cromossomo
-        operators = Rules.get_operator(crom, properties.BINARY_REPRESENTATION_SIZE)
-        # Valores (V) do cromossomo
-        values = Rules.get_decimal_value(crom, properties.BINARY_REPRESENTATION_SIZE)
-        logger_term.debug("VALORES: %s", values)
 
         # Faz mapeamento apenas se houver intervalos válidos
         if valid_rule:
